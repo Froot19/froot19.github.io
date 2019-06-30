@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0">
+<title>Picker</title>
+<style>
+body {
+    background:#FFF;
+    color:#000;
+    font-family:verdana, sans-serif;
+    font-size:10pt;
+    margin:0;
+    padding:10px;
+}
+
+a:link, a:visited {
+    color:#008;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+a:active, a:hover {
+    color:#ACF;
+}
+
+.info {
+    font-weight:bold;
+}
+
+button {
+    font-family:inherit;
+    cursor:pointer;
+    border:0;
+    border-radius:3px;
+    padding:0.3em 0.5em;
+    background:#CCC;
+    color:#000;
+}
+
+button:hover {
+    background:#DDD;
+}
+
+button.disabled {
+    background:#DDD;
+    color:#888;
+    cursor:not-allowed;
+}
+
+button.disabled:hover {
+    background:#DDD;
+}
+
+#container {
+    position:relative;
+    margin-left:-10px;
+    margin-right:-10px;
+    padding:10px;
+    overflow:hidden;
+}
+
+@media (min-width:1024px) {
+    /* Put the found favorites beside the picking div when the window is sufficiently large */
+    #picking {
+        float:left;
+        width:636px;
+    }
+
+    #secondary {
+        margin-left:646px;
+    }
+}
+
+@media (min-width:1300px) {
+    /* Once we get to the point where 636px is less than half of the width of the screen, make the picking div just take up half */
+    #picking {
+        width:50%;
+    }
+
+    #secondary {
+        margin-left:51%;
+    }
+}
+
+#pick {
+    background:#58F;
+    color:#FFF;
+    font-size:larger;
+    font-weight:bold;
+    width:6em;
+    border-radius:5px;
+    margin-right:10px;
+}
+
+#pick.disabled {
+    background:#ACF;
+}
+
+#pick:hover {
+    background:#ACF;
+}
+
+.item-list {
+    padding:0;
+    list-style-type:none;
+    line-height:100px;
+}
+
+.item-list li {
+    margin:0;
+    display:inline-block;
+    height:100px;
+    width:100px;
+    line-height:100px;
+    border:3px solid transparent;
+    text-align:center;
+    position:relative;
+    vertical-align:top;
+    overflow:hidden;
+    border-radius:100%;
+    background:#F7F7F7;
+    color:#000;
+}
+
+.item-list li img {
+    vertical-align:middle;
+    max-height:100%;
+    max-width:100%;
+}
+
+.item-list li span {
+    display:inline-block;
+    vertical-align:middle;
+    line-height:1.2;
+}
+
+@media (max-width:636px) {
+    .item-list {
+        line-height:75px;
+    }
+
+    .item-list li {
+        line-height:75px;
+        height:75px;
+        width:75px;
+    }
+}
+
+@media (max-width:423px) {
+    .item-list {
+        line-height:50px;
+    }
+
+    .item-list li {
+        line-height:50px;
+        height:50px;
+        width:50px;
+    }
+}
+
+#evaluating li {
+    cursor:pointer;
+}
+
+#favorites li {
+    cursor:move;
+}
+
+.item-list li:hover {
+    background:#CDF;
+}
+
+.item-list.sorting li:hover {
+    background:#F7F7F7;
+}
+
+#evaluating li.selected {
+    border:3px solid #7AC;
+}
+
+#evaluating, #buttons {
+    text-align:center;
+    margin:auto;
+}
+
+#evaluating li.notice {
+    width:auto;
+    height:auto;
+    max-width:260px;
+    margin:auto;
+    background:#F7F7F7;
+    border-radius:10px;
+    padding:30px 30px;
+    color:#000;
+    text-align:center;
+    line-height:1.4;
+    cursor:auto;
+    font-size:10pt;
+}
+
+#buttons {
+    margin-top:30px;
+    position:relative;
+    z-index:3;
+}
+</style>
+</head>
+<body>
+<h1>King Gizz Song Picker</h1>
+
+<p>Find Your Favourite King Gizz Songs.</p>
+
+<div id="container">
+
+<div id="picking">
+<ul id="evaluating" class="item-list">
+</ul>
+
+<p id="buttons"><button id="pick">Pick</button> <button id="pass">Pass</button> <button id="undo">Undo</button> <button id="redo">Redo</button></p>
+<input type="number" id="max-batch-size">
+</div>
+
+<div id="secondary">
+<p>Include Albums:</br>
+<label><input type="checkbox" name="albums" class="albums" value="12BarBruise"> 12 Bar Bruise</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="FloatAlong"> Float Along - Fill Your Lungs</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="Oddments"> Oddments</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="MindFuzz"> I'm In Your Mind Fuzz</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="Quarters"> Quarters</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="Nonagon"> Nonagon Infinity</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="FMB"> Flying Microtonal Banana</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="MotU"> Murder of the Universe</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="SoBE"> Sketches of Brunswick East</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="Poly"> Polygondwanaland</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="Gumboot"> Gumboot Soup</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="FFF"> Fishing For Fishies</label></br>
+<label><input type="checkbox" name="albums" class="albums" value="ITRN"> Infest the Rats' Nest</label></br>
+</p>
+
+<h2>Found favorites</h2>
+
+<ol id="favorites" class="item-list">
+</ol>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="picker.js"></script>
+<script src="picker-ui.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+<script>
+'use strict';
+
+var items = [
+    {id: 'elbow', name: 'Elbow', album: '12BarBruise'},
+	{id: 'muck', name: 'Muckraker', album: '12BarBruise'},
+	{id: 'nein', name: 'Nein', album: '12BarBruise'},
+	{id: '12bb', name: '12 Bar Bruise', album: '12BarBruise'},
+	{id: 'liddiard', name: 'Garage Liddiard', album: '12BarBruise'},
+	{id: 'sam', name: 'Sam Cherrys Last Shot', album: '12BarBruise'},
+	{id: 'highhopes', name: 'High Hopes Low', album: '12BarBruise'},
+	{id: 'cutthroat', name: 'Cut Throat Boogie', album: '12BarBruise'},
+	{id: 'ripper', name: 'Bloody Ripper', album: '12BarBruise'},
+	{id: 'mum', name: 'Uh Oh, I Called Mum', album: '12BarBruise'},
+	{id: 'sea', name: 'Sea of Trees', album: '12BarBruise'},
+	{id: 'footy', name: 'Footy Footy', album: '12BarBruise'},
+	{id: 'headon', name: 'Head On/Pill', album: 'FloatAlong'},
+	{id: 'notaman', name: 'Im Not a Man Unless I Have A Woman', album: 'FloatAlong'},
+	{id: 'godiscalling', name: 'God Is Calling Me Back Home', album: 'FloatAlong'},
+	{id: '30', name: '30 Past 7', album: 'FloatAlong'},
+	{id: 'letme', name: 'Let Me Mend The Past', album: 'FloatAlong'},
+	{id: 'mystery', name: 'Mystery Jack', album: 'FloatAlong'},
+	{id: 'pop', name: 'Pop In My Step', album: 'FloatAlong'},
+	{id: 'float', name: 'Float Along - Fill Your Lungs', album: 'FloatAlong'},
+	{id: 'alluda', name: 'Alluda Majaka', album: 'Oddments'},
+	{id: 'stress', name: "Stressin'", album: 'Oddments'},
+	{id: 'vege', name: 'Vegemite', album: 'Oddments'},
+	{id: 'old', name: "It's Got Old", album: 'Oddments'},
+	{id: 'work', name: 'Work This Time', album: 'Oddments'},
+	{id: 'ababcd', name: "ABABCd", album: 'Oddments'},
+	{id: 'sleepwalker', name: 'Sleepwalker', album: 'Oddments'},
+	{id: 'wax', name: "Hot Wax", album: 'Oddments'},
+	{id: 'cry', name: 'Crying', album: 'Oddments'},
+	{id: 'pipe', name: "Pipe-Dream", album: 'Oddments'},
+	{id: 'homeless', name: 'Homeless Man In Addidas', album: 'Oddments'},
+	{id: 'odd', name: "Oddments", album: 'Oddments'},
+	{id: 'inyourmind', name: 'Im In Your Mind', album: 'MindFuzz'},
+	{id: 'notinyourmind', name: "I'm Not In Your Mind", album: 'MindFuzz'},
+	{id: 'cello', name: "Cellophane", album: 'MindFuzz'},
+	{id: 'yourmindfuzz', name: "I'm In Your Mind Fuzz", album: 'MindFuzz'},
+	{id: 'empty', name: "Empty", album: 'MindFuzz'},
+	{id: 'hotwater', name: "Hot Water", album: 'MindFuzz'},
+	{id: 'heaven', name: "Am I In Heaven?", album: 'MindFuzz'},
+	{id: 'slowjam1', name: "Slow Jam 1", album: 'MindFuzz'},
+	{id: 'satanspeeds', name: "Satan Speeds Up", album: 'MindFuzz'},
+	{id: 'slowjam2', name: "Her And I (Slow Jam 2)", album: 'MindFuzz'},
+	{id: 'river', name: "I'm Not In Your Mind", album: 'Quarters'},
+	{id: 'infinite', name: "I'm Not In Your Mind", album: 'Quarters'},
+	{id: 'rhythm', name: "I'm Not In Your Mind", album: 'Quarters'},
+	{id: 'steelsheet', name: "Lonely Steel Sheet Flyer", album: 'Quarters'},
+	{id: 'sense', name: "Sense", album: 'PMDB'},
+	{id: 'bone', name: "Bone", album: 'PMDB'},
+	{id: 'dirt', name: "Dirt", album: 'PMDB'},
+	{id: 'pamadrba', name: "Paper Mache Dream Balloon", album: 'PMDB'},
+	{id: 'trapdoor', name: "Trapdoor", album: 'PMDB'},
+	{id: 'cadaver', name: "Cold Cadaver", album: 'PMDB'},
+	{id: 'bitter', name: "The Bitter Boogie", album: 'PMDB'},
+	{id: 'ngri', name: "N.G.R.I (Bloodstain)", album: 'PMDB'},
+	{id: 'timefate', name: "Time = Fate", album: 'PMDB'},
+	{id: 'timemoney', name: "Time = $$$", album: 'PMDB'},
+	{id: 'most', name: "Most Of What I Like", album: 'PMDB'},
+	{id: 'papermache', name: "Paper Mache", album: 'PMDB'},
+	{id: 'robotstop', name: "Robot Stop", album: 'Nonagon'},
+	{id: 'wasp', name: "Big Fig Wasp", album: 'Nonagon'},
+	{id: 'gamma', name: "Gamma Knife", album: 'Nonagon'},
+	{id: 'vultures', name: "People Vultures", album: 'Nonagon'},
+	{id: 'mrbeat', name: "Mr Beat", album: 'Nonagon'},
+	{id: 'deathroll', name: "Evil Death Roll", album: 'Nonagon'},
+	{id: 'invisible', name: "Invisible Face", album: 'Nonagon'},
+	{id: 'wah', name: "Wah Wah", album: 'Nonagon'},
+	{id: 'roadtrain', name: "Road Train", album: 'Nonagon'},
+	{id: 'snake', name: "Rattlesnake", album: 'FMB'},
+	{id: 'melting', name: "Melting", album: 'FMB'},
+	{id: 'openwater', name: "Open Water", album: 'FMB'},
+	{id: 'sleepdrifter', name: "Sleep Drifter", album: 'FMB'},
+	{id: 'billabong', name: "Billabong Valley", album: 'FMB'},
+	{id: 'anoxia', name: "Anoxia", album: 'FMB'},
+	{id: 'doomc', name: "Doom City", album: 'FMB'},
+	{id: 'nuclear', name: "Nuclear Fusion", album: 'FMB'},
+	{id: 'flmb', name: "Flying Microtonal Banana", album: 'FMB'},
+	{id: 'altered', name: "Altered Beast", album: 'MotU'},
+	{id: 'lol', name: "The Lord Of Lightning", album: 'MotU'},
+	{id: 'balrog', name: "The Balrog", album: 'MotU'},
+	{id: 'floatingfire', name: "The Floating Fire", album: 'MotU'},
+	{id: 'digital', name: "Digital Black", album: 'MotU'},
+	{id: 'vomit', name: "Vomit Coffin", album: 'MotU'},
+	{id: 'murder', name: "Murder of the Universe", album: 'MotU'},
+	{id: 'sobe1', name: "Sketches of Brunswick East I", album: 'SoBE'},
+	{id: 'countdown', name: "Countdown", album: 'SoBE'},
+	{id: 'dday', name: "D-Day", album: 'SoBE'},
+	{id: 'tezeta', name: "Tezeta", album: 'SoBE'},
+	{id: 'cranes', name: "Cranes, Planes, Migraines", album: 'SoBE'},
+	{id: 'spider', name: "The Spider And Me", album: 'SoBE'},
+	{id: 'sobe2', name: "Sketches of Brunswick East II", album: 'SoBE'},
+	{id: 'lygon', name: "Dusk To Dawn On Lygon Street", album: 'SoBE'},
+	{id: 'book', name: "The Book", album: 'SoBE'},
+	{id: 'shell', name: "A Journey To (S)hell", album: 'SoBE'},
+	{id: 'rolling', name: "Rolling Stoned", album: 'SoBE'},
+	{id: 'silhouette', name: "You Can Be Your Silhouette", album: 'SoBE'},
+	{id: 'sobe3', name: "Sketches of Brunswick East III", album: 'SoBE'},
+	{id: 'castles', name: "Crumbling Castles", album: 'Poly'},
+	{id: 'polyg', name: "Polygondwanaland", album: 'Poly'},
+	{id: 'air', name: "The Castle In The Air", album: 'Poly'},
+	{id: 'dunes', name: "Deserted Dunes Welcome Weary Feet", album: 'Poly'},
+	{id: 'inner', name: "Inner Cell", album: 'Poly'},
+	{id: 'loyalty', name: "Loyalty", album: 'Poly'},
+	{id: 'horology', name: "Horology", album: 'Poly'},
+	{id: 'tetra', name: "Tetrachromacy", album: 'Poly'},
+	{id: 'search', name: "Searching...", album: 'Poly'},
+	{id: 'fourth', name: "The Fourth Colour", album: 'Poly'},
+	{id: 'luck', name: "Beginner's Luck", album: 'Gumboot'},
+	{id: 'greenhouse', name: "Greenhouse Heat Death", album: 'Gumboot'},
+	{id: 'barefoot', name: "Barefoot Desert", album: 'Gumboot'},
+	{id: 'muddy', name: "Muddy Water", album: 'Gumboot'},
+	{id: 'superposition', name: "Superposition", album: 'Gumboot'},
+	{id: 'sink', name: "Down The Sink", album: 'Gumboot'},
+	{id: 'greatchain', name: "The Great Chain Of Being", album: 'Gumboot'},
+	{id: 'oasis', name: "The Last Oasis", album: 'Gumboot'},
+	{id: 'known', name: "All Is Known", album: 'Gumboot'},
+	{id: 'sleepin', name: "I'm Sleepin' In", album: 'Gumboot'},
+	{id: 'wheel', name: "The Wheel", album: 'Gumboot'},
+	{id: 'fishies', name: "Fishing For Fishies", album: 'FFF'},
+	{id: 'bsam', name: "Boogieman Sam", album: 'FFF'},
+	{id: 'bird', name: "The Bird Song", album: 'FFF'},
+	{id: 'plastic', name: "Plastic Boogie", album: 'FFF'},
+	{id: 'cruel', name: "The Cruel Millennial", album: 'FFF'},
+	{id: 'reals', name: "Real's Not Real", album: 'FFF'},
+	{id: 'thing', name: "This Thing", album: 'FFF'},
+	{id: 'acarine', name: "Acarine", album: 'FFF'},
+	{id: 'cyboogie', name: "Cyboogie", album: 'FFF'},
+	{id: 'planetb', name: "Planet B", album: 'ITRN'},
+	//{id: 'mars', name: "Mars for the Rich", album: 'ITRN'},
+	{id: 'organ', name: "Organ Farmer", album: 'ITRN'},
+	//{id: 'bug', name: "Superbug", album: 'ITRN'},
+	//{id: 'venus1', name: "Venusian 1", album: 'ITRN'},
+	//{id: 'perihelion', name: "Perihelion", album: 'ITRN'},
+	//{id: 'venus2', name: "Venusian 2", album: 'ITRN'},
+	{id: 'immolate', name: "Self-Immolate", album: 'ITRN'},
+	//{id: 'hell', name: "Hell", album: 'ITRN'}
+];
+
+var myPicker = new picker.Picker({
+    items: items,
+    defaultSettings: {
+		maxBatchSize: 2,
+		albums: ['12BarBruise', 'FloatAlong', 'Oddments', 'MindFuzz', 'Quarters', 'PMDB', 'Nonagon', 'FMB', 'MotU', 'SoBE', 'Poly', 'Gumboot', 'FFF', 'ITRN']
+    },
+	shouldIncludeItem: function(item, settings) {
+        // Include only if:
+        // 1. the character's role is in the list of roles we've checked, and
+        // 2. we haven't checked the "recurring only" box, or the character is a recurring character.
+        return settings.albums.indexOf(item.album) !== -1;
+    }
+	});
+
+var pickerUI = new PickerUI(myPicker, {
+    elements: {
+        pick: "#pick",
+        pass: "#pass",
+        undo: "#undo",
+        redo: "#redo",
+        evaluating: "#evaluating",
+        favorites: "#favorites",
+        settings: {
+            albums: '.albums',
+			maxBatchSize: '#max-batch-size'
+        }
+    }
+});
+
+pickerUI.initialize();
+
+/* Sortable favorites - you can safely remove this, and the Sortable.min.js script, if you don't want to be able to sort your favorite list. */
+var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
+    draggable: '.item',
+    animation: 100,
+    onStart: function() {
+        pickerUI.elem.favorites.addClass("sorting");
+    },
+    onEnd: function() {
+        pickerUI.elem.favorites.removeClass("sorting");
+    },
+    onUpdate: function() {
+        myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
+            return pickerUI.getItem(this);
+        }).get());
+        pickerUI.update(true);
+    }
+});
+/* End sortable favorites */
+</script>
+</body>
+</html>
